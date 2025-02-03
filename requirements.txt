@@ -1,4 +1,6 @@
 flask
 numpy
 opencv-python-headless
-gunicorn
+waitress
+
+
