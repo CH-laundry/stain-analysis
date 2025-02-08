@@ -49,3 +49,4 @@ if __name__ == '__main__':
     port = int(os.getenv("PORT", 8080))
     print(f"🚀 Flask 正在啟動，監聽 Port {port}")
     serve(app, host='0.0.0.0', port=port)
+# 這是一個測試註解，確認 Git 是否偵測到變更
