@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 import os
-from linebot import LineBotApi, WebhookHandler
+from linebot.v3.messaging import MessagingApi
+from linebot.v3.webhook import WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
 from waitress import serve  # 這裡移動到最上面
@@ -14,7 +15,7 @@ CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET")
 if not CHANNEL_ACCESS_TOKEN or not CHANNEL_SECRET:
     print("⚠️ 警告：未設定 LINE_CHANNEL_ACCESS_TOKEN 或 LINE_CHANNEL_SECRET，請前往 Railway 設定！")
 
-line_bot_api = LineBotApi(CHANNEL_ACCESS_TOKEN)
+line_bot_api = MessagingApi(CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(CHANNEL_SECRET)
 
 # LINE Webhook
