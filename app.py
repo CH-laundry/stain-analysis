@@ -3,8 +3,9 @@ import os
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
+from waitress import serve  # 這裡移動到最上面
 
-app = Flask(__name__)
+app = Flask(__name__)  # ✅ 確保 `app` 只定義一次
 
 # 環境變數設定
 CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
@@ -39,20 +40,12 @@ def handle_message(event):
         TextSendMessage(text="Hello! 這是您的自動回覆訊息！")
     )
 
-import os
-from waitress import serve
-
-import os
-from flask import Flask
-from waitress import serve
-
-app = Flask(__name__)
-
+# ✅ 確保 `/` 路徑可以回應，確認伺服器運行
 @app.route("/")
 def home():
     return "C.H Laundry LINE Webhook is running!"
 
 if __name__ == '__main__':
     port = int(os.getenv("PORT", 8080))
-    print(f"🚀 Flask 正在啟動... 監聽 Port {port}")
+    print(f"🚀 Flask 正在啟動，監聽 Port {port}")
     serve(app, host='0.0.0.0', port=port)
