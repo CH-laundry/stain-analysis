@@ -4,21 +4,23 @@ from linebot.v3.messaging import MessagingApi
 from linebot.v3.webhook import WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
-from waitress import serve  # 這裡移動到最上面
+from waitress import serve  # 確保在最上面
 
-app = Flask(__name__)  # ✅ 確保 `app` 只定義一次
-
-# 環境變數設定
+# 讀取環境變數（只讀取一次）
 CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET")
 
+# 確保環境變數已經設定
 if not CHANNEL_ACCESS_TOKEN or not CHANNEL_SECRET:
-    print("⚠️ 警告：未設定 LINE_CHANNEL_ACCESS_TOKEN 或 LINE_CHANNEL_SECRET，請前往 Railway 設定！")
+    print("❌ 錯誤：環境變數 LINE_CHANNEL_ACCESS_TOKEN 或 LINE_CHANNEL_SECRET 未設置！")
+    exit(1)  # 強制終止程式
+
+app = Flask(__name__)  # ✅ 確保 `app` 只定義一次
 
 line_bot_api = MessagingApi(CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(CHANNEL_SECRET)
 
-# LINE Webhook
+# ✅ Webhook 路由
 @app.route("/webhook", methods=['POST'])
 def webhook():
     signature = request.headers.get('X-Line-Signature')
@@ -33,7 +35,7 @@ def webhook():
 
     return jsonify({"message": "Webhook 接收成功"}), 200
 
-# 設定 LINE 訊息回應
+# ✅ LINE 訊息回應
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     line_bot_api.reply_message(
@@ -50,4 +52,3 @@ if __name__ == '__main__':
     port = int(os.getenv("PORT", 8080))
     print(f"🚀 Flask 正在啟動，監聽 Port {port}")
     serve(app, host='0.0.0.0', port=port)
-# 這是一個測試註解，確認 Git 是否偵測到變更
