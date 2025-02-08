@@ -1,13 +1,58 @@
-from flask import Flask
+from flask import Flask, request, jsonify
 import os
+from linebot import LineBotApi, WebhookHandler
+from linebot.exceptions import InvalidSignatureError
+from linebot.models import MessageEvent, TextMessage, TextSendMessage
 
 app = Flask(__name__)
 
-@app.route('/')
-def hello_world():
-    return 'Hello, World!'
+# 環境變數設定
+CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
+CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET")
+
+if not CHANNEL_ACCESS_TOKEN or not CHANNEL_SECRET:
+    raise ValueError("請在 Railway 設定環境變數 LINE_CHANNEL_ACCESS_TOKEN 和 LINE_CHANNEL_SECRET")
+
+line_bot_api = LineBotApi(CHANNEL_ACCESS_TOKEN)
+handler = WebhookHandler(CHANNEL_SECRET)
+
+# LINE Webhook
+@app.route("/webhook", methods=['POST'])
+def webhook():
+    signature = request.headers.get('X-Line-Signature')
+    if not signature:
+        return jsonify({"error": "缺少 X-Line-Signature"}), 400
+
+    body = request.get_data(as_text=True)
+    try:
+        handler.handle(body, signature)
+    except InvalidSignatureError:
+        return jsonify({"error": "無效的簽名"}), 400
+
+    return jsonify({"message": "Webhook 接收成功"}), 200
+
+# 設定 LINE 訊息回應
+@handler.add(MessageEvent, message=TextMessage)
+def handle_message(event):
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text="Hello! 這是您的自動回覆訊息！")
+    )
+
+import os
+from waitress import serve
+
+import os
+from flask import Flask
+from waitress import serve
+
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "C.H Laundry LINE Webhook is running!"
 
 if __name__ == '__main__':
-    # 使用環境變數 PORT，如果不存在則默認為 5000
-    port = int(os.getenv('PORT', 5000))
-    app.run(debug=True, host='0.0.0.0', port=port)
+    port = int(os.getenv("PORT", 8080))
+    print(f"🚀 Flask 正在啟動... 監聽 Port {port}")
+    serve(app, host='0.0.0.0', port=port)
